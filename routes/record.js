@@ -11,29 +11,6 @@ const dbo = require("../db/conn");
 // This help convert the id from string to ObjectId for the _id.
 const ObjectId = require("mongodb").ObjectId;
 
-
-// This section will help you get a list of all the records.
-recordRoutes.route("").get(function (req, res) {
-  let db_connect = dbo.getDb("employees");
-  
-    db_connect
-    .collection("records")
-    .find({})
-    .toArray(function (err, result) {
-      if (err) console.log('hey');;
-      res.json(result);
-    });
-    // let myobj = {
-    //     person_name: "Nada",
-    //     person_position: "designer",
-    //     person_level: "level 2",
-    //   };
-    // db_connect.collection("records").insertOne(myobj, function (err, response) {
-    //     if (err) throw err;
-    //     res.json(response);
-    // });
-});
-
 // This section will help you get a single record by id
 recordRoutes.route("/login/:name/:password").get(function (req, res) {
   let db_connect = dbo.getDb();
@@ -43,44 +20,53 @@ recordRoutes.route("/login/:name/:password").get(function (req, res) {
       .collection("Users")
       .findOne(myquery, function (err, result) {
         if (err) throw err;
-        console.log(result);
-       
         res.json(result);   
       });
 });
 
 // This section will help you create a new record.
-// recordRoutes.route("/data").post(function (req, response) {
+recordRoutes.route("/update/:index/:updatedText").post(function (req, response) {
+  let db_connect = dbo.getDb();
+  let myquery = { name : "yousef"};
+
+  let newvalues = {}
+  newvalues["Notes." + parseInt(req.params.index.substring(1))] = {"value": req.params.updatedText.substring(1)}
+  console.log(newvalues);
+  // db_connect
+  //   .collection("Users")
+  //   .updateOne(myquery, {$set:{newvalues}}, function (err, res) {
+  //     if (err) throw err;
+  //     console.log("1 document updated");
+  //     console.log(res);
+  //     response.json(res);
+    
+  // });
+});
+
+
+// This section will help you update a record by id.
+// recordRoutes.route("/record/add").post(function (req, response) {
 //   let db_connect = dbo.getDb();
 //   let myobj = {
-//     person_name: "new name",
-//     person_position: "new position",
-//     person_level: "new level",
+//     person_name: "nada",
+//     person_position: "designer",
+//     person_level: "level 2",
 //   };
-//   db_connect.collection("records").insertOne(myobj, function (err, res) {
+//   db_connect.collection("Users").insertOne(myobj, function (err, res) {
 //     if (err) throw err;
 //     response.json(res);
 //   });
 // });
 
-// // This section will help you update a record by id.
-// recordRoutes.route("/update/:id").post(function (req, response) {
-//   let db_connect = dbo.getDb();
-//   let myquery = { _id: ObjectId( req.params.id )};
-//   let newvalues = {
-//     $set: {
-//       person_name: req.body.person_name,
-//       person_position: req.body.person_position,
-//       person_level: req.body.person_level,
-//     },
-//   };
-//   db_connect
-//     .collection("records")
-//     .updateOne(myquery, newvalues, function (err, res) {
-//       if (err) throw err;
-//       console.log("1 document updated");
-//       response.json(res);
-//     });
+
+  //    db_connect
+  //   .collection("Users")
+  //   .updateOne(myquery, newvalues, function (err, res) {
+  //     if (err) throw err;
+  //     console.log("1 document updated");
+  //     response.json(res);
+  //   });
+  // console.log("HEREREERE");
 // });
 
 // // This section will help you delete a record
