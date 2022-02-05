@@ -12,9 +12,14 @@ const dbo = require("../db/conn");
 const ObjectId = require("mongodb").ObjectId;
 
 // Login route
-recordRoutes.route("/login/:name/:password").get(function (req, res) {
+recordRoutes.route("/login/:name/:password").get(async function (req, res) {
   let db_connect = dbo.getDb();
-  let myquery = { name: (req.params.name.substring(1)), password: (req.params.password.substring(1))};
+  let myquery = { name: (req.params.name), password: (req.params.password)};
+
+  await db_connect
+  .updateMany(myquery, {$pull: {"Notes" : null} }, function (err, res) {
+    if (err) throw err;
+  });
 
   db_connect
       .findOne(myquery, function (err, result) {
@@ -24,24 +29,47 @@ recordRoutes.route("/login/:name/:password").get(function (req, res) {
 });
 
 // Add Note Route
-recordRoutes.route("/addNote/:title").post(function (req, response) {
+recordRoutes.route("/addNote/:userID/:title").post(function (req, response) {
   let db_connect = dbo.getDb();
-  let myquery = { name : "yousef"};
+  let myquery = { _id: new ObjectId(req.params.userID)};
   db_connect
-    .updateOne(myquery, {$push:{'Notes': {"title" : req.params.title.substring(1), "value": ''}}}, function (err, res) {
+    .updateOne(myquery, {$push:{'Notes': {"title" : req.params.title, "value": ''}}}, function (err, res) {
+      if (err) throw err;
+      response.json(res);
+  });
+});
+
+recordRoutes.route("/addNote/:userID/:title/:value").post(function (req, response) {
+  let db_connect = dbo.getDb();
+  let myquery = { _id: new ObjectId(req.params.userID)};
+  db_connect
+    .updateOne(myquery, {$push:{'Notes': {"title" : req.params.title, "value": req.params.value}}}, function (err, res) {
       if (err) throw err;
       response.json(res);
   });
 });
 
 // Update Note Text Route
-recordRoutes.route("/update/:index/:updatedText").post(function (req, response) {
+recordRoutes.route("/updateTitle/:userID/:index/:updatedTitle").post(function (req, response) {
   let db_connect = dbo.getDb();
-  let myquery = { name : "yousef"};
+  let myquery = { _id: new ObjectId(req.params.userID)};
 
   let newvalues = {}
-  newvalues["Notes." + parseInt(req.params.index.substring(1)) + ".value"] = req.params.updatedText.substring(1)
-  console.log(newvalues);
+  newvalues["Notes." + parseInt(req.params.index) + ".title"] = req.params.updatedTitle
+  db_connect
+    .updateOne(myquery, {$set:newvalues}, function (err, res) {
+      if (err) throw err;
+      response.json(res);
+  });
+});
+
+// Update Note Text Route
+recordRoutes.route("/update/:userID/:index/:updatedText").post(function (req, response) {
+  let db_connect = dbo.getDb();
+  let myquery = { _id: new ObjectId(req.params.userID)};
+
+  let newvalues = {}
+  newvalues["Notes." + parseInt(req.params.index) + ".value"] = req.params.updatedText
   db_connect
     .updateOne(myquery, {$set:newvalues}, function (err, res) {
       if (err) throw err;
@@ -50,62 +78,44 @@ recordRoutes.route("/update/:index/:updatedText").post(function (req, response) 
 });
 
 //Delete Note Route
-recordRoutes.route("/deleteNote/:index").post(function (req, response) {
-  deletingNote(req.params.index);
-});
-
-//async function to delete notes. Async to wait for setting the value with null then remove any null value.
-async function deletingNote(noteIndex)
-{
+recordRoutes.route("/deleteNote/:userID/:index").post(async function (req, response) {
   let db_connect = dbo.getDb();
-  let myquery = { name : "yousef"};
+  let myquery = { _id: ObjectId(req.params.userID)};
   let newvalues = {}
-  newvalues["Notes." + noteIndex] = 1
-  console.log(newvalues);
+  newvalues["Notes." + req.params.index] = 1
   await db_connect
     .updateOne(myquery, {$unset: newvalues }, function (err, res) {
   });
-  db_connect
-  .updateOne(myquery, {$pull: {"Notes" : null} }, function (err, res) {
+  await db_connect
+  .updateMany(myquery, {$pull: {Notes : null} }, function (err, res) {
     if (err) throw err;
   });
- }
+  await db_connect
+  .updateMany(myquery, {$pull: {Notes : null} }, function (err, res) {
+    if (err) throw err;
+  });
+});
 
-{
-// This section will help you update a record by id.
-// recordRoutes.route("/record/add").post(function (req, response) {
-//   let db_connect = dbo.getDb();
-//   let myobj = {
-//     person_name: "nada",
-//     person_position: "designer",
-//     person_level: "level 2",
-//   };
-//   db_connect.collection("Users").insertOne(myobj, function (err, res) {
-//     if (err) throw err;
-//     response.json(res);
-//   });
-// });
+recordRoutes.route("/register/:name").get(function (req, res) {
+  let db_connect = dbo.getDb();
+  let myquery = { name: (req.params.name)};
 
+  db_connect
+  .findOne(myquery, function (err, result) {
+    if (err) throw err;
+    res.json(result);   
+  });
+});
 
-  //    db_connect
-  //   .collection("Users")
-  //   .updateOne(myquery, newvalues, function (err, res) {
-  //     if (err) throw err;
-  //     console.log("1 document updated");
-  //     response.json(res);
-  //   });
-  // console.log("HEREREERE");
-// });
+recordRoutes.route("/register/:name/:password").post(function (req, res) {
+  let db_connect = dbo.getDb();
+  let myquery = { name: (req.params.name), password: (req.params.password), Notes: []};
 
-// // This section will help you delete a record
-// recordRoutes.route("/:id").delete((req, response) => {
-//   let db_connect = dbo.getDb();
-//   let myquery = { _id: ObjectId( req.params.id )};
-//   db_connect.collection("records").deleteOne(myquery, function (err, obj) {
-//     if (err) throw err;
-//     console.log("1 document deleted");
-//     response.status(obj);
-//   });
-// });
-}
+  db_connect
+  .insertOne(myquery, function (err, result) {
+    if (err) throw err;
+    res.json(result);   
+  });
+});
+
 module.exports = recordRoutes;
