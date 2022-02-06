@@ -49,8 +49,8 @@ recordRoutes.route("/addNote/:userID/:title/:value").post(function (req, respons
   });
 });
 
-// Update Note Text Route
-recordRoutes.route("/updateTitle/:userID/:index/:updatedTitle").post(function (req, response) {
+// Update Note title Route
+recordRoutes.route(["/updateTitle/:userID/:index/:updatedTitle","/updateTitle/:userID/:index/"]).post(function (req, response) {
   let db_connect = dbo.getDb();
   let myquery = { _id: new ObjectId(req.params.userID)};
 
@@ -64,7 +64,7 @@ recordRoutes.route("/updateTitle/:userID/:index/:updatedTitle").post(function (r
 });
 
 // Update Note Text Route
-recordRoutes.route("/update/:userID/:index/:updatedText").post(function (req, response) {
+recordRoutes.route(["/update/:userID/:index/:updatedText","/update/:userID/:index/"]).post(function (req, response) {
   let db_connect = dbo.getDb();
   let myquery = { _id: new ObjectId(req.params.userID)};
 
