@@ -16,11 +16,6 @@ recordRoutes.route("/login/:name/:password").get(async function (req, res) {
   let db_connect = dbo.getDb();
   let myquery = { name: (req.params.name), password: (req.params.password)};
 
-  await db_connect
-  .updateMany(myquery, {$pull: {"Notes" : null} }, function (err, res) {
-    if (err) throw err;
-  });
-
   db_connect
       .findOne(myquery, function (err, result) {
         if (err) throw err;
@@ -76,7 +71,18 @@ recordRoutes.route(["/update/:userID/:index/:updatedText","/update/:userID/:inde
       response.json(res);
   });
 });
+recordRoutes.route("/update/:userID/:index/").post(function (req, response) {
+  let db_connect = dbo.getDb();
+  let myquery = { _id: new ObjectId(req.params.userID)};
 
+  let newvalues = {}
+  newvalues["Notes." + parseInt(req.params.index) + ".value"] = req.params.updatedText
+  db_connect
+    .updateOne(myquery, {$set:newvalues}, function (err, res) {
+      if (err) throw err;
+      response.json(res);
+  });
+});
 //Delete Note Route
 recordRoutes.route("/deleteNote/:userID/:index").post(async function (req, response) {
   let db_connect = dbo.getDb();
